@@ -26,6 +26,19 @@ Further, there are tasks db:dump and db:load which do the entire database (the e
     rake db:data:dump_dir   ->   Dump contents of database to curr_dir_name/tablename.extension (defaults to yaml)
     rake db:data:load_dir   ->   Load contents of db/data_dir into database
 
+Also, it is possible to dump only selected tables of your database:
+
+    rake db:data:dump_dir filter_tables=^table[0-5]$|other_table
+    rake db:data:dump filter_tables=^table[0-5]$|other_table
+
+(Beware that the `filter_tables` paramater is evaluated as a regular expression
+(with `Regexp.new(filter_tables)`), so:
+
+    rake db:data:dump_dir filter_tables=mytable
+
+will dump `mytable`, but also `mytable_join_other_table`.
+
+
 In addition, we have plugins whereby you can export your database to/from various formats.  We only deal with yaml and csv right now, but you can easily write tools for your own formats (such as Excel or XML).  To use another format, just load setting the "class"  parameter to the class you are using.  This defaults to "YamlDb::Helper" which is a refactoring of the old yaml_db code.  We'll shorten this to use class nicknames in a little bit.
 
 ## Examples

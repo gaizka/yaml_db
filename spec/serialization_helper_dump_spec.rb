@@ -61,5 +61,49 @@ describe SerializationHelper::Dump do
     end
 
 
+  context "when configured to only dump selected tables" do
+    before do
+      ActiveRecord::Base.connection.stub!(:tables).and_return([ 'mytable1', 'mytable2', 'mytable3', 'schema_info', 'schema_migrations' ])
+    end
 
+    after do
+      # Check expected tables to dump
+      SerializationHelper::Dump.tables.sort.should == @expected_tables
+
+      if @expected_tables.size > 0
+        @expected_tables.each do |table|
+          # Check actual calls to dump_table with expected tables
+          SerializationHelper::Dump.should_receive(:dump_table).with(nil, table)
+        end
+      else
+        SerializationHelper::Dump.should_not_receive(:dump_table).with(anything)
+      end
+
+      SerializationHelper::Dump.dump(nil)
+
+      # Restore default behaviour
+      SerializationHelper::Dump.filter_table_names = nil
+    end
+    
+    it "should dump every table if filter not set" do
+      SerializationHelper::Dump.filter_table_names = nil
+      @expected_tables =  ['mytable1', 'mytable2', 'mytable3']
+    end
+
+    it "should dump matching tables if filter is set as a matching string" do
+      SerializationHelper::Dump.filter_table_names = "mytable"
+      @expected_tables =  ['mytable1', 'mytable2', 'mytable3']
+    end
+    
+    it "should dump matching tables if filter is set as a regular expression string" do
+      SerializationHelper::Dump.filter_table_names = "mytable[1-2]"
+      @expected_tables =  ['mytable1', 'mytable2']
+    end
+
+    it "should not dump any table if filter does not match any table" do
+      SerializationHelper::Dump.filter_table_names = "wadustable"
+      @expected_tables =  []
+    end
+    
+  end
 end

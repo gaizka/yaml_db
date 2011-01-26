@@ -33,6 +33,11 @@ describe SerializationHelper::Base do
          SerializationHelper::Base.new(@helper).dump_to_dir "dir_name"
       end   
 
+      it "should be able to be configured such as it will dump only selected tables" do
+        @dumper.should_receive(:"filter_table_names=").with("table_filter")
+        SerializationHelper::Base.new(@helper, "table_filter").dump_to_dir "dir_name"
+      end
+
     end
 
     context "for multi-file loads" do

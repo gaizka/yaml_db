@@ -3,10 +3,11 @@ module SerializationHelper
   class Base
     attr_reader :extension
 
-    def initialize(helper)
+    def initialize(helper, filter_table_names = nil)
       @dumper = helper.dumper
       @loader = helper.loader
       @extension = helper.extension
+      @dumper.filter_table_names = filter_table_names if filter_table_names
     end
 
     def dump(filename)
@@ -137,6 +138,10 @@ module SerializationHelper
   end
 
   class Dump
+    class << self
+      attr_accessor :filter_table_names
+    end
+
     def self.before_table(io, table)
 
     end
@@ -154,7 +159,9 @@ module SerializationHelper
     end
 
     def self.tables
-      ActiveRecord::Base.connection.tables.reject { |table| ['schema_info', 'schema_migrations'].include?(table) }
+      all_tables = ActiveRecord::Base.connection.tables.reject { |table| ['schema_info', 'schema_migrations'].include?(table) }
+
+      filter_table_names ? all_tables.grep(Regexp.new(filter_table_names)) : all_tables
     end
 
     def self.dump_table(io, table)
